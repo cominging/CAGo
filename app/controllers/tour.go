@@ -4,7 +4,7 @@ import (
 	"github.com/JustinJudd/CAGo/app/models"
 	"github.com/JustinJudd/CAGo/app/routes"
 	"fmt"
-	"github.com/robfig/revel"
+	"github.com/revel/revel"
 
 	//"crypto/tls"
 

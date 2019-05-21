@@ -1,8 +1,6 @@
 package controllers
 
 import (
-	"github.com/JustinJudd/CAGo/app/models"
-	"github.com/JustinJudd/CAGo/app/routes"
 	"crypto/ecdsa"
 	"crypto/elliptic"
 	"crypto/rand"
@@ -11,16 +9,20 @@ import (
 	"crypto/x509/pkix"
 	"encoding/asn1"
 	"encoding/pem"
-	"github.com/robfig/revel"
 	"math/big"
 	"strconv"
 	"strings"
 	"time"
 
-	"code.google.com/p/go.crypto/bcrypt"
+	"github.com/JustinJudd/CAGo/app/models"
+	"github.com/JustinJudd/CAGo/app/routes"
+	"github.com/revel/revel"
+
 	"crypto"
 	"errors"
 	"io"
+
+	"golang.org/x/crypto/bcrypt"
 )
 
 // Default controller struct for CA Go
@@ -36,7 +38,7 @@ type BreadCrumb struct {
 
 // This function is registered to be run before every controller function
 func (c App) logEntry() revel.Result {
-	revel.INFO.Println(c.Request.Method, c.Request.URL, "(Action:", c.Action, "Params:", c.Params.Route, "User:", c.Session["user"], ")")
+	c.Log.Info("%s %s (Action: %s Params: %s User: %s)", c.Request.Method, c.Request.URL, c.Action,  c.Params.Route,  c.Session["user"])
 	return nil
 }
 
@@ -81,11 +83,11 @@ func (c App) getServerURL() string {
 }
 
 func (c App) getServerPort() string {
-	config, err := revel.LoadConfig("app.conf")
-	if err != nil || config == nil {
-		panic(err)
-	}
-	httpPort := config.IntDefault("http.port", 9000)
+	// config, err := revel.LoadConfig("app.conf")
+	// if err != nil || config == nil {
+	// 	panic(err)
+	// }
+	httpPort := revel.Config.IntDefault("http.port", 9000)
 	port := strconv.Itoa(httpPort)
 	return port
 }
@@ -102,8 +104,8 @@ func (c App) Index() revel.Result {
 	}
 
 	userId := 0
-	if c.RenderArgs["user"] != nil {
-		user := c.RenderArgs["user"].(*models.User)
+	if c.ViewArgs["user"] != nil {
+		user := c.ViewArgs["user"].(*models.User)
 		userId = user.Id
 	}
 
@@ -473,8 +475,8 @@ func (c App) saveProject(project models.Project) error {
 	}
 
 	// Add the creator as a project owner and save in database
-	project_member := models.ProjectMembership{User: c.connected(), Project: &project, Admin: true}
-	err = c.Txn.Insert(&project_member)
+	projectMember := models.ProjectMembership{User: c.connected(), Project: &project, Admin: true}
+	err = c.Txn.Insert(&projectMember)
 	if err != nil {
 		return newError("Unable to create project membership", err)
 	}

@@ -3,7 +3,7 @@ package controllers
 import (
 	"github.com/JustinJudd/CAGo/app/models"
 	"github.com/JustinJudd/CAGo/app/routes"
-	"github.com/robfig/revel"
+	"github.com/revel/revel"
 	"time"
 
 	"crypto/x509"
@@ -459,8 +459,8 @@ func (c Project) Index(id int) revel.Result {
 	certs := c.getProjectCerts(project)
 
 	var user *models.User
-	if c.RenderArgs["user"] != nil {
-		user = c.RenderArgs["user"].(*models.User)
+	if c.ViewArgs["user"] != nil {
+		user = c.ViewArgs["user"].(*models.User)
 	}
 
 	revoked := c.getProjectsRevokedCerts(id)
@@ -490,12 +490,12 @@ func (c Project) Index(id int) revel.Result {
 func (c Project) CreateCert(id int) revel.Result {
 
 	var user *models.User
-	if c.RenderArgs["user"] == nil {
+	if c.ViewArgs["user"] == nil {
 		c.Flash.Error("You must log in first")
 		return c.Redirect(routes.App.Index())
 	}
 
-	user = c.RenderArgs["user"].(*models.User)
+	user = c.ViewArgs["user"].(*models.User)
 	project := c.getProject(id)
 	if project == nil {
 		c.Flash.Error("Project not found")
@@ -559,10 +559,10 @@ func (c Project) ViewCert(projectId, certId int) revel.Result {
 	}
 
 	var user *models.User
-	if c.RenderArgs["user"] == nil {
+	if c.ViewArgs["user"] == nil {
 		user = &models.User{IsAdmin: false}
 	} else {
-		user = c.RenderArgs["user"].(*models.User)
+		user = c.ViewArgs["user"].(*models.User)
 	}
 
 	cert_owners := c.getCertificateOwners(certId)
@@ -676,12 +676,12 @@ func (c Project) ViewCert(projectId, certId int) revel.Result {
 func (c Project) CreateCertificate(id int, certificate models.FullCertificate) revel.Result {
 
 	var user *models.User
-	if c.RenderArgs["user"] == nil {
+	if c.ViewArgs["user"] == nil {
 		c.Flash.Error("You must log in first")
 		return c.Redirect(routes.App.Index())
 	}
 
-	user = c.RenderArgs["user"].(*models.User)
+	user = c.ViewArgs["user"].(*models.User)
 
 	project := c.getProject(id)
 	if project == nil {
@@ -719,12 +719,12 @@ func (c Project) CreateCertificate(id int, certificate models.FullCertificate) r
 // Load/Import a Certificate Signing Request
 func (c Project) LoadCSR(id int) revel.Result {
 	var user *models.User
-	if c.RenderArgs["user"] == nil {
+	if c.ViewArgs["user"] == nil {
 		c.Flash.Error("You must log in first")
 		return c.Redirect(routes.App.Index())
 	}
 
-	user = c.RenderArgs["user"].(*models.User)
+	user = c.ViewArgs["user"].(*models.User)
 
 	project := c.getProject(id)
 	if project == nil {
@@ -758,12 +758,12 @@ func (c Project) LoadCSR(id int) revel.Result {
 func (c Project) SaveCSR(id int, csr *models.CertificateRequest) revel.Result {
 
 	var user *models.User
-	if c.RenderArgs["user"] == nil {
+	if c.ViewArgs["user"] == nil {
 		c.Flash.Error("You must log in first")
 		return c.Redirect(routes.App.Index())
 	}
 
-	user = c.RenderArgs["user"].(*models.User)
+	user = c.ViewArgs["user"].(*models.User)
 
 	project := c.getProject(id)
 	if project == nil {
@@ -902,12 +902,12 @@ func (c Project) DownloadChain(id, certId int) revel.Result {
 // Download a key in PEM format
 func (c Project) DownloadKey(id, certId int) revel.Result {
 	var user *models.User
-	if c.RenderArgs["user"] == nil {
+	if c.ViewArgs["user"] == nil {
 		c.Flash.Error("You must log in first")
 		return c.Redirect(routes.App.Index())
 	}
 
-	user = c.RenderArgs["user"].(*models.User)
+	user = c.ViewArgs["user"].(*models.User)
 
 	project := c.getProject(id)
 	if project == nil {
@@ -941,12 +941,12 @@ func (c Project) DownloadKey(id, certId int) revel.Result {
 // Download an encrypted key in PEM format
 func (c Project) DownloadEncryptedKey(id, certId int, newKey, existingKey string) revel.Result {
 	var user *models.User
-	if c.RenderArgs["user"] == nil {
+	if c.ViewArgs["user"] == nil {
 		c.Flash.Error("You must log in first")
 		return c.Redirect(routes.App.Index())
 	}
 
-	user = c.RenderArgs["user"].(*models.User)
+	user = c.ViewArgs["user"].(*models.User)
 
 	project := c.getProject(id)
 	if project == nil {
@@ -1021,12 +1021,12 @@ func (c Project) DownloadEncryptedKey(id, certId int, newKey, existingKey string
 // Generate a One Time Link to allow download of a key
 func (c Project) GenerateOneTimeLink(id, certId int) revel.Result {
 	var user *models.User
-	if c.RenderArgs["user"] == nil {
+	if c.ViewArgs["user"] == nil {
 		c.Flash.Error("You must log in first")
 		return c.Redirect(routes.App.Index())
 	}
 
-	user = c.RenderArgs["user"].(*models.User)
+	user = c.ViewArgs["user"].(*models.User)
 
 	project := c.getProject(id)
 	if project == nil {
@@ -1098,7 +1098,7 @@ func (c App) DownloadCRL(crlId int) revel.Result {
 		return c.Redirect(routes.App.Index())
 	}
 	crl := obj.(*models.CACount)
-	revel.INFO.Println(crl)
+	c.Log.Info("%v", crl)
 
 	var signKey interface{}
 

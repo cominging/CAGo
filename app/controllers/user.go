@@ -3,8 +3,8 @@ package controllers
 import (
 	"github.com/JustinJudd/CAGo/app/models"
 	"github.com/JustinJudd/CAGo/app/routes"
-	"code.google.com/p/go.crypto/bcrypt"
-	"github.com/robfig/revel"
+	"github.com/revel/revel"
+	"golang.org/x/crypto/bcrypt"
 )
 
 // Controller for user related actions
@@ -38,11 +38,14 @@ func (c App) getUserFromId(userId int) *models.User {
 
 // Check if a user is connected(logged in)
 func (c App) connected() *models.User {
-	if c.RenderArgs["user"] != nil {
-		return c.RenderArgs["user"].(*models.User)
+	if c.ViewArgs["user"] != nil {
+		return c.ViewArgs["user"].(*models.User)
 	}
 	if username, ok := c.Session["user"]; ok {
-		return c.getUser(username)
+		if s, ok := username.(string); ok {
+			return c.getUser(s)
+		}
+		return nil
 	}
 	return nil
 }
@@ -50,7 +53,7 @@ func (c App) connected() *models.User {
 // Add a user to the session
 func (c App) AddUser() revel.Result {
 	if user := c.connected(); user != nil {
-		c.RenderArgs["user"] = user
+		c.ViewArgs["user"] = user
 	}
 	return nil
 }
@@ -67,7 +70,7 @@ func (c User) Index() revel.Result {
 
 // Log a user in based on provided username and password
 func (c User) Login(username, password string) revel.Result {
-	if _, ok := c.RenderArgs["user"]; ok {
+	if _, ok := c.ViewArgs["user"]; ok {
 		return c.Redirect(routes.App.Index())
 	}
 	user := c.getUser(username)
@@ -94,12 +97,12 @@ func (c User) Register() revel.Result {
 func (c User) Create() revel.Result {
 
 	var user *models.User
-	if c.RenderArgs["user"] == nil {
+	if c.ViewArgs["user"] == nil {
 		c.Flash.Error("You must log in first")
 		return c.Redirect(routes.App.Index())
 	}
 
-	user = c.RenderArgs["user"].(*models.User)
+	user = c.ViewArgs["user"].(*models.User)
 
 	if !user.IsAdmin {
 		c.Flash.Error("You do not have permissions for this page")
@@ -118,12 +121,12 @@ func (c User) Create() revel.Result {
 // Create and save the new user
 func (c User) SaveUser(user models.User, verifyPassword string) revel.Result {
 	var activeUser *models.User
-	if c.RenderArgs["user"] == nil {
+	if c.ViewArgs["user"] == nil {
 		c.Flash.Error("You must log in first")
 		return c.Redirect(routes.App.Index())
 	}
 
-	activeUser = c.RenderArgs["user"].(*models.User)
+	activeUser = c.ViewArgs["user"].(*models.User)
 
 	if !activeUser.IsAdmin {
 		c.Flash.Error("You do not have permissions for this page")

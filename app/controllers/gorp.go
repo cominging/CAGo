@@ -1,14 +1,15 @@
 package controllers
 
 import (
-	"github.com/JustinJudd/CAGo/app/models"
 	"database/sql"
+
+	"github.com/JustinJudd/CAGo/app/models"
 	"github.com/coopernurse/gorp"
 	_ "github.com/mattn/go-sqlite3"
-	r "github.com/robfig/revel"
-	"github.com/robfig/revel/modules/db/app"
+	db "github.com/revel/modules/db/app"
+	r "github.com/revel/revel"
 )
-
+ 
 var (
 	// Database Map
 	Dbm *gorp.DbMap

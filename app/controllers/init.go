@@ -2,7 +2,7 @@ package controllers
 
 import (
 	"bytes"
-	"github.com/robfig/revel"
+	"github.com/revel/revel"
 	"html/template"
 	"math/rand"
 	"strings"

@@ -19,7 +19,7 @@ Features
 
 Dependencies
 ------------
-* https://github.com/robfig/revel
+* https://github.com/revel/revel
 * https://github.com/coopernurse/gorp
 * https://github.com/mattn/go-sqlite3
 
@@ -27,11 +27,14 @@ Building CAGo
 -------------
 (Assumes GOPATH is set)
 
-1.  go get github.com/JustinJudd/CAGo
-2.  go get github.com/robfig/revel/revel
-3.  go get github.com/coopernurse/gorp
-4.  go get github.com/mattn/go-sqlite3
-5.  bin/revel build github.com/JustinJudd/CAGo
+- Clone the project<br>
+  `git clone github.com/cominging/CAGo`
+- Get the revel build tools<br>
+  `go get github.com/revel/cmd/revel`
+- Get the related sources<br>
+  `go get github.com/revel/revel github.com/revel/modules github.com/coopernurse/gorp github.com/mattn/go-sqlite3`
+- Build it and save the runnable in directory `deploy`<br>
+  `cd CAGo; revel build . deploy`
 
 This will create a binary for your system that will run the CAGo webserver. You can change the port information in the conf/app.conf file. Once you run the binary you can go to the given port in your webbrowser to access CAGo (eg. localhost:9000). 
 

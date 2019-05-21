@@ -1,11 +1,12 @@
 package controllers
 
 import (
-	"github.com/JustinJudd/CAGo/app/models"
-	"github.com/JustinJudd/CAGo/app/routes"
-	"github.com/robfig/revel"
 	"strconv"
 	"strings"
+
+	"github.com/JustinJudd/CAGo/app/models"
+	"github.com/JustinJudd/CAGo/app/routes"
+	"github.com/revel/revel"
 
 	"crypto/x509"
 	"encoding/pem"
@@ -45,12 +46,12 @@ func (c Admin) Index() revel.Result {
 // Admin controller - List users and access, create users
 func (c Admin) Users() revel.Result {
 	var user *models.User
-	if c.RenderArgs["user"] == nil {
+	if c.ViewArgs["user"] == nil {
 		c.Flash.Error("You must log in first")
 		return c.Redirect(routes.App.Index())
 	}
 
-	user = c.RenderArgs["user"].(*models.User)
+	user = c.ViewArgs["user"].(*models.User)
 
 	if !user.IsAdmin {
 		c.Flash.Error("You do not have permissions for this page")
@@ -80,12 +81,12 @@ func (c Admin) Users() revel.Result {
 func (c Admin) EditUser(userId int) revel.Result {
 
 	var loggedin_user *models.User
-	if c.RenderArgs["user"] == nil {
+	if c.ViewArgs["user"] == nil {
 		c.Flash.Error("You must log in first")
 		return c.Redirect(routes.App.Index())
 	}
 
-	loggedin_user = c.RenderArgs["user"].(*models.User)
+	loggedin_user = c.ViewArgs["user"].(*models.User)
 
 	if !loggedin_user.IsAdmin {
 		c.Flash.Error("You do not have permissions for this page")
@@ -121,12 +122,12 @@ func (c Admin) EditUser(userId int) revel.Result {
 // Save the user
 func (c Admin) SaveUser(userId int, user models.User) revel.Result {
 	var loggedin_user *models.User
-	if c.RenderArgs["user"] == nil {
+	if c.ViewArgs["user"] == nil {
 		c.Flash.Error("You must log in first")
 		return c.Redirect(routes.App.Index())
 	}
 
-	loggedin_user = c.RenderArgs["user"].(*models.User)
+	loggedin_user = c.ViewArgs["user"].(*models.User)
 
 	if !loggedin_user.IsAdmin {
 		c.Flash.Error("You do not have permissions for this page")
@@ -172,7 +173,7 @@ func (c Admin) SaveUser(userId int, user models.User) revel.Result {
 	add := make([]int, 0)
 	remove := make([]int, 0)
 
-	revel.INFO.Println(project_map, projects)
+	c.Log.Info("%v %v", project_map, projects)
 
 	// Find projects to add
 	for _, proj := range projects {
@@ -195,8 +196,8 @@ func (c Admin) SaveUser(userId int, user models.User) revel.Result {
 			}
 		}
 	}
-	revel.INFO.Println("ADD:", add)
-	revel.INFO.Println("REMOVE:", remove)
+	c.Log.Info("ADD: %v", add)
+	c.Log.Info("REMOVE: %v", remove)
 
 	_, err := c.Txn.Update(edit_user)
 	if err != nil {
@@ -225,14 +226,14 @@ func (c Admin) SaveUser(userId int, user models.User) revel.Result {
 	_, err = c.Txn.Update(updateMembership...)
 	if err != nil {
 		c.Flash.Error("Error Updating user")
-		revel.INFO.Println(err)
+		c.Log.Info("%v", err)
 		return c.Redirect(routes.Admin.EditUser(edit_user.Id))
 	}
 
 	err = c.Txn.Insert(addMembership...)
 	if err != nil {
 		c.Flash.Error("Error Updating user")
-		revel.INFO.Println(err)
+		c.Log.Info("%v", err)
 		return c.Redirect(routes.Admin.EditUser(edit_user.Id))
 	}
 
@@ -243,12 +244,12 @@ func (c Admin) SaveUser(userId int, user models.User) revel.Result {
 // Create a new project through admin portal
 func (c Admin) Project() revel.Result {
 	var user *models.User
-	if c.RenderArgs["user"] == nil {
+	if c.ViewArgs["user"] == nil {
 		c.Flash.Error("You must log in first")
 		return c.Redirect(routes.App.Index())
 	}
 
-	user = c.RenderArgs["user"].(*models.User)
+	user = c.ViewArgs["user"].(*models.User)
 
 	if !user.IsAdmin {
 		c.Flash.Error("You do not have permissions for this page")
@@ -268,12 +269,12 @@ func (c Admin) Project() revel.Result {
 func (c Admin) Projects() revel.Result {
 
 	var user *models.User
-	if c.RenderArgs["user"] == nil {
+	if c.ViewArgs["user"] == nil {
 		c.Flash.Error("You must log in first")
 		return c.Redirect(routes.App.Index())
 	}
 
-	user = c.RenderArgs["user"].(*models.User)
+	user = c.ViewArgs["user"].(*models.User)
 
 	isProjectOwner := c.isProjectOwner(user.Id)
 
@@ -298,12 +299,12 @@ func (c Admin) Projects() revel.Result {
 func (c Admin) ManageProject(id int) revel.Result {
 
 	var user *models.User
-	if c.RenderArgs["user"] == nil {
+	if c.ViewArgs["user"] == nil {
 		c.Flash.Error("You must log in first")
 		return c.Redirect(routes.App.Index())
 	}
 
-	user = c.RenderArgs["user"].(*models.User)
+	user = c.ViewArgs["user"].(*models.User)
 
 	project := c.getProject(id)
 	if project == nil {
@@ -360,12 +361,12 @@ func (c Admin) ManageProject(id int) revel.Result {
 func (c Admin) EditProject(id int) revel.Result {
 
 	var user *models.User
-	if c.RenderArgs["user"] == nil {
+	if c.ViewArgs["user"] == nil {
 		c.Flash.Error("You must log in first")
 		return c.Redirect(routes.App.Index())
 	}
 
-	user = c.RenderArgs["user"].(*models.User)
+	user = c.ViewArgs["user"].(*models.User)
 
 	project := c.getProject(id)
 	if project == nil {
@@ -406,12 +407,12 @@ func (c Admin) UpdateProject(id int, project models.Project) revel.Result {
 	}
 
 	var user *models.User
-	if c.RenderArgs["user"] == nil {
+	if c.ViewArgs["user"] == nil {
 		c.Flash.Error("You must log in first")
 		return c.Redirect(routes.App.Index())
 	}
 
-	user = c.RenderArgs["user"].(*models.User)
+	user = c.ViewArgs["user"].(*models.User)
 
 	project_owners := c.getProjectOwners(id)
 	owns := false
@@ -441,12 +442,12 @@ func (c Admin) UpdateProject(id int, project models.Project) revel.Result {
 func (c Admin) SaveProject(project models.Project) revel.Result {
 
 	var user *models.User
-	if c.RenderArgs["user"] == nil {
+	if c.ViewArgs["user"] == nil {
 		c.Flash.Error("You must log in first")
 		return c.Redirect(routes.App.Index())
 	}
 
-	user = c.RenderArgs["user"].(*models.User)
+	user = c.ViewArgs["user"].(*models.User)
 
 	if !user.IsAdmin {
 		c.Flash.Error("You do not have permissions for this page")
@@ -480,12 +481,12 @@ func (c Admin) NewTemplate(id int) revel.Result {
 	}
 
 	var user *models.User
-	if c.RenderArgs["user"] == nil {
+	if c.ViewArgs["user"] == nil {
 		c.Flash.Error("You must log in first")
 		return c.Redirect(routes.App.Index())
 	}
 
-	user = c.RenderArgs["user"].(*models.User)
+	user = c.ViewArgs["user"].(*models.User)
 
 	project_owners := c.getProjectOwners(id)
 	owns := false
@@ -527,12 +528,12 @@ func (c Admin) CreateTemplate(id int, template models.CertificateTemplate) revel
 	}
 
 	var user *models.User
-	if c.RenderArgs["user"] == nil {
+	if c.ViewArgs["user"] == nil {
 		c.Flash.Error("You must log in first")
 		return c.Redirect(routes.App.Index())
 	}
 
-	user = c.RenderArgs["user"].(*models.User)
+	user = c.ViewArgs["user"].(*models.User)
 
 	project_owners := c.getProjectOwners(id)
 	owns := false
@@ -551,7 +552,7 @@ func (c Admin) CreateTemplate(id int, template models.CertificateTemplate) revel
 
 	template.KeyUses = strings.Join(c.Params.Values["template.KeyUses"], ", ")
 	template.ExtKeyUses = strings.Join(c.Params.Values["template.ExtKeyUses"], ", ")
-	revel.INFO.Println(template)
+	c.Log.Info("%v", template)
 
 	err := c.Txn.Insert(&template)
 	if err != nil {
@@ -567,12 +568,12 @@ func (c Admin) CreateTemplate(id int, template models.CertificateTemplate) revel
 func (c Admin) EditTemplate(id, templateId int) revel.Result {
 
 	var user *models.User
-	if c.RenderArgs["user"] == nil {
+	if c.ViewArgs["user"] == nil {
 		c.Flash.Error("You must log in first")
 		return c.Redirect(routes.App.Index())
 	}
 
-	user = c.RenderArgs["user"].(*models.User)
+	user = c.ViewArgs["user"].(*models.User)
 
 	project := c.getProject(id)
 	if project == nil {
@@ -619,12 +620,12 @@ func (c Admin) UpdateTemplate(id int, template models.CertificateTemplate) revel
 	}
 
 	var user *models.User
-	if c.RenderArgs["user"] == nil {
+	if c.ViewArgs["user"] == nil {
 		c.Flash.Error("You must log in first")
 		return c.Redirect(routes.App.Index())
 	}
 
-	user = c.RenderArgs["user"].(*models.User)
+	user = c.ViewArgs["user"].(*models.User)
 
 	project_owners := c.getProjectOwners(id)
 	owns := false
@@ -650,7 +651,7 @@ func (c Admin) UpdateTemplate(id int, template models.CertificateTemplate) revel
 
 	template.KeyUses = strings.Join(c.Params.Values["template.KeyUses"], ", ")
 	template.ExtKeyUses = strings.Join(c.Params.Values["template.ExtKeyUses"], ", ")
-	revel.INFO.Println(template)
+	c.Log.Info("%v", template)
 
 	_, err := c.Txn.Update(&template)
 	if err != nil {
@@ -666,12 +667,12 @@ func (c Admin) UpdateTemplate(id int, template models.CertificateTemplate) revel
 func (c Admin) EditProjectMembership(projectId int) revel.Result {
 
 	var user *models.User
-	if c.RenderArgs["user"] == nil {
+	if c.ViewArgs["user"] == nil {
 		c.Flash.Error("You must log in first")
 		return c.Redirect(routes.App.Index())
 	}
 
-	user = c.RenderArgs["user"].(*models.User)
+	user = c.ViewArgs["user"].(*models.User)
 
 	project := c.getProject(projectId)
 	if project == nil {
@@ -726,12 +727,12 @@ func (c Admin) EditProjectMembership(projectId int) revel.Result {
 func (c Admin) SaveProjectMembership(projectId int) revel.Result {
 
 	var user *models.User
-	if c.RenderArgs["user"] == nil {
+	if c.ViewArgs["user"] == nil {
 		c.Flash.Error("You must log in first")
 		return c.Redirect(routes.App.Index())
 	}
 
-	user = c.RenderArgs["user"].(*models.User)
+	user = c.ViewArgs["user"].(*models.User)
 
 	project := c.getProject(projectId)
 	if project == nil {
@@ -754,8 +755,8 @@ func (c Admin) SaveProjectMembership(projectId int) revel.Result {
 	owners := c.Params.Values["projectOwnership"]
 	members := c.Params.Values["projectMembership"]
 
-	//revel.INFO.Println("Owners: ", owners)
-	//revel.INFO.Println("Members: ", members)
+	//c.Log.Info("Owners: ", owners)
+	//c.Log.Info("Members: ", members)
 
 	all_members := c.getProjectMembers(project.Id)
 	all_users := c.getUsers()
@@ -813,9 +814,9 @@ func (c Admin) SaveProjectMembership(projectId int) revel.Result {
 			member_remove = append(member_remove, member)
 		}
 	}
-	revel.INFO.Println("MEMBER ADD:", member_add)
-	revel.INFO.Println("MEMBER REMOVE:", member_remove)
-	revel.INFO.Println("MEMBER UPDATE:", member_update)
+	c.Log.Info("MEMBER ADD:", member_add)
+	c.Log.Info("MEMBER REMOVE:", member_remove)
+	c.Log.Info("MEMBER UPDATE:", member_update)
 
 	removeMembership := make([]interface{}, len(member_remove))
 	for i, r := range member_remove {
@@ -840,21 +841,21 @@ func (c Admin) SaveProjectMembership(projectId int) revel.Result {
 	_, err := c.Txn.Delete(removeMembership...)
 	if err != nil {
 		c.Flash.Error("Error removing user member")
-		revel.INFO.Println(err)
+		c.Log.Info("%v", err)
 		return c.Redirect(routes.Admin.ManageProject(project.Id))
 	}
 
 	err = c.Txn.Insert(addMembership...)
 	if err != nil {
 		c.Flash.Error("Error adding user member")
-		revel.INFO.Println(err)
+		c.Log.Info("%v", err)
 		return c.Redirect(routes.Admin.ManageProject(project.Id))
 	}
 
 	_, err = c.Txn.Update(updateMembership...)
 	if err != nil {
 		c.Flash.Error("Error updating user member")
-		revel.INFO.Println(err)
+		c.Log.Info("%v", err)
 		return c.Redirect(routes.Admin.ManageProject(project.Id))
 	}
 
@@ -866,12 +867,12 @@ func (c Admin) SaveProjectMembership(projectId int) revel.Result {
 func (c Admin) EditCertificate(projectId, certId int) revel.Result {
 
 	var user *models.User
-	if c.RenderArgs["user"] == nil {
+	if c.ViewArgs["user"] == nil {
 		c.Flash.Error("You must log in first")
 		return c.Redirect(routes.App.Index())
 	}
 
-	user = c.RenderArgs["user"].(*models.User)
+	user = c.ViewArgs["user"].(*models.User)
 
 	project := c.getProject(projectId)
 	if project == nil {
@@ -912,7 +913,7 @@ func (c Admin) EditCertificate(projectId, certId int) revel.Result {
 		}
 	}
 
-	revel.INFO.Println(cert_owners)
+	c.Log.Info("%v", cert_owners)
 	if !user.IsAdmin && !owns {
 		c.Flash.Error("You do not have permissions for this page")
 		return c.Redirect(routes.Admin.Index())
@@ -1024,12 +1025,12 @@ func (c Admin) EditCertificate(projectId, certId int) revel.Result {
 func (c Admin) UpdateCertificate(projectId, certId int) revel.Result {
 
 	var user *models.User
-	if c.RenderArgs["user"] == nil {
+	if c.ViewArgs["user"] == nil {
 		c.Flash.Error("You must log in first")
 		return c.Redirect(routes.App.Index())
 	}
 
-	user = c.RenderArgs["user"].(*models.User)
+	user = c.ViewArgs["user"].(*models.User)
 
 	project := c.getProject(projectId)
 	if project == nil {
@@ -1115,14 +1116,14 @@ func (c Admin) UpdateCertificate(projectId, certId int) revel.Result {
 	_, err := c.Txn.Delete(removeOwnership...)
 	if err != nil {
 		c.Flash.Error("Error removing user owner")
-		revel.INFO.Println(err)
+		c.Log.Info("%v", err)
 		return c.Redirect(routes.Admin.ManageProject(project.Id))
 	}
 
 	err = c.Txn.Insert(addOwnership...)
 	if err != nil {
 		c.Flash.Error("Error inserting user owner")
-		revel.INFO.Println(err)
+		c.Log.Info("%v", err)
 		return c.Redirect(routes.Admin.ManageProject(project.Id))
 	}
 
@@ -1134,12 +1135,12 @@ func (c Admin) UpdateCertificate(projectId, certId int) revel.Result {
 func (c Admin) SignCSR(projectId, csrId int) revel.Result {
 
 	var user *models.User
-	if c.RenderArgs["user"] == nil {
+	if c.ViewArgs["user"] == nil {
 		c.Flash.Error("You must log in first")
 		return c.Redirect(routes.App.Index())
 	}
 
-	user = c.RenderArgs["user"].(*models.User)
+	user = c.ViewArgs["user"].(*models.User)
 	project := c.getProject(projectId)
 	if project == nil {
 		c.Flash.Error("Project not found")
@@ -1212,12 +1213,12 @@ func (c Admin) SignCSR(projectId, csrId int) revel.Result {
 func (c Admin) SaveSignCSR(projectId, csrId int, certificate models.FullCertificate) revel.Result {
 
 	var user *models.User
-	if c.RenderArgs["user"] == nil {
+	if c.ViewArgs["user"] == nil {
 		c.Flash.Error("You must log in first")
 		return c.Redirect(routes.App.Index())
 	}
 
-	user = c.RenderArgs["user"].(*models.User)
+	user = c.ViewArgs["user"].(*models.User)
 	project := c.getProject(projectId)
 	if project == nil {
 		c.Flash.Error("Project not found")
@@ -1270,12 +1271,12 @@ func (c Admin) SaveSignCSR(projectId, csrId int, certificate models.FullCertific
 func (c Admin) RevokeCertificate(projectId, certId int) revel.Result {
 
 	var user *models.User
-	if c.RenderArgs["user"] == nil {
+	if c.ViewArgs["user"] == nil {
 		c.Flash.Error("You must log in first")
 		return c.Redirect(routes.App.Index())
 	}
 
-	user = c.RenderArgs["user"].(*models.User)
+	user = c.ViewArgs["user"].(*models.User)
 	project := c.getProject(projectId)
 	if project == nil {
 		c.Flash.Error("Project not found")
